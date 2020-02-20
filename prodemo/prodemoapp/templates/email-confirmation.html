@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>User Verify</title>
+</head>
+
+<body>
+    <section id="email_confirmation">
+        <div id="mailsub" class="notification" align="center">
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="min-width: 320px;">
+                <tr>
+                    <td align="center" bgcolor="#eff3f8">
+                        <table border="0" cellspacing="0" cellpadding="0" class="table_width_100" width="100%" style="max-width: 680px; min-width: 300px;">
+                            <tr>
+                                <td>
+                                    <div style="height: 80px; line-height: 80px; font-size: 10px;">&nbsp;</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="center" bgcolor="#4ba428">
+                                    <div style="height: 30px; line-height: 30px; font-size: 10px;">&nbsp;</div>
+                                    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                        <tr>
+                                            <td align="center" valign="top" class="mob_center">
+                                                <a href="{{base_url}}" target="_blank" style="color: #f9f9f9; font-family: Arial, Helvetica, sans-serif; font-size: 13px;">
+
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <div style="height: 30px; line-height: 30px; font-size: 10px;">&nbsp;</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="center" bgcolor="#f9f9f9">
+                                    <table width="90%" border="0" cellspacing="0" cellpadding="0">
+                                        <tr>
+                                            <td align="left">
+                                                <div style="height: 30px; line-height: 30px; font-size: 10px;">&nbsp;</div>
+                                                <div style="line-height: 44px;">
+                                                    <span style="font-family: Arial, Helvetica, sans-serif;font-size: 15px;color: #131414;display: block;margin-block-start: 1.33em;margin-inline-start: 0px;margin-inline-end: 0px;font-weight: bold;text-align: left;">
+                                                        Verify your email:
+                                                    </span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td align="left">
+                                                <div style="line-height: 24px;">
+                                                    <span style="font-family: Arial, Helvetica, sans-serif; font-size: 15px; color: #000;">
+                                                        Thank you for signing up For CA FIRM, To complete the sign-up process, Please click on the button below to verify your email address.
+                                                    </span>
+                                                </div>
+                                                <div style="height: 15px; line-height: 15px; font-size: 10px;">&nbsp;</div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td align="left">
+                                                <div style="line-height: 24px;">
+                                                    <a style="display:inline-block;color:#fff;text-decoration:none;text-transform:uppercase;font-weight:bold;background:#4ba428;border-color:#42a21c;padding:12px 26px 12px 26px;border-radius:8px" href="{{base_url}}/verify-account/{{confirmation_token}}" target="_blank" data-saferedirecturl="">
+                                                        <span style="font-size:13px">
+                                                            <span style="font-family:lato,helvetica neue,helvetica,arial,sans-serif;letter-spacing:0.1em">Verify Email</span>
+                                                        </span>
+                                                    </a>
+                                                </div>
+                                                <div style="height: 10px; line-height: 10px; font-size: 10px;">&nbsp;</div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td align="left">
+                                                <div style="line-height: 24px;">
+                                                    <span style="font-family: Arial, Helvetica, sans-serif; font-size: 15px; color: #000;">
+                                                        This link will expire in 24 hours. <br>
+                                                        Unable to click on the above button?<br> Click here <a href="{{base_url}}/email-verification/{{confirmation_token}}" target="_blank" data-saferedirecturl="">{{base_url}}/email-verification/{{confirmation_token}}</a> 
+                                                    </span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div style="height: 80px; line-height: 80px; font-size: 10px;">&nbsp;</div>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </section>
+</body>
+
+</html>
