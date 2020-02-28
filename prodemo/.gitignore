@@ -1,0 +1,11 @@
+*.pyc
+**/migrations
+**/media
+**/__pycache__
+manage.py
+__init__.py
+apps.py
+tests.py
+wsgi.py
+settings.py
+.DS_Store

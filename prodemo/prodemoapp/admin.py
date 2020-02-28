@@ -13,7 +13,7 @@ admin.site.register(Client)
 
 
 
-admin.site.register(Packages_type_Choices)
+
 admin.site.register(Packages)
 admin.site.register(Subscription)
 admin.site.register(Payment)

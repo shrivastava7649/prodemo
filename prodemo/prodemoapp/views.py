@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
+from django.db.models import Q
 from rest_framework.response import Response
 from rest_framework import status
 from datetime import datetime, timedelta
@@ -17,7 +18,8 @@ from rest_framework.views import APIView
 from django.core import signing
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
-from prodemoapp.serializer import Organisations_serializers,Employee_data_serializers,UserSerializer,Task_serializers,Category_serializer,SubCategory_serializer,Employee_edit_serializer,Employee_get_serializer,Employee_otp_varifyserializers,Employee_otp_loginserializer,SubCategory_get_serializers,Panding_Task_get_serializers,Organisations_passwords_serializer,New_passwordresetserializer,ChangePasswordSerializer_for_Organisations,Packages_get_serializer,Packages_create_serializer,Client_get_serializer,Client_Edit_serializer,Organisation_get_serializer,Subscription_get_serializer,Organisation_edit_serializer,Pyment_create_serializer,Pyment_get_serializer,Subscription_edit_serializer,accounts_serializer,accounts_serializer_edit,Task_get_serializers,get_task_all_serializer,bar_chart_serializer,xyzserializer,Task_trackingserializer,admin_id_serializers,update_password_serializer,ImageSerializer,Imageuploademployee
+from prodemoapp.serializer import Organisations_serializers,Employee_data_serializers,UserSerializer,Task_serializers,Category_serializer,SubCategory_serializer,Employee_edit_serializer,Employee_get_serializer,Employee_otp_varifyserializers,Employee_otp_loginserializer,SubCategory_get_serializers,Panding_Task_get_serializers,Organisations_passwords_serializer,New_passwordresetserializer,ChangePasswordSerializer_for_Organisations,Packages_get_serializer,Packages_create_serializer,Client_get_serializer,Client_Edit_serializer,Organisation_get_serializer,Subscription_get_serializer,Organisation_edit_serializer,Pyment_create_serializer,Pyment_get_serializer,Subscription_edit_serializer,accounts_serializer,accounts_serializer_edit,Task_get_serializers,get_task_all_serializer,bar_chart_serializer,xyzserializer,Task_trackingserializer,admin_id_serializers,update_password_serializer,ImageSerializer,Imageuploademployee,orgloginserializer,Imageuploademployee_admin
+
 
 from rest_framework import viewsets
 
@@ -38,16 +40,12 @@ from rest_framework_swagger.views import get_swagger_view
 
 
 
-# Create your views here.
-
-#import socket
-#socket.getaddrinfo('localhost', 8080)
-
 class IsOwnerOrReadOnly(permissions.BasePermission):
     """
     Object-level permission to only allow owners of an object to edit it.
     Assumes the model instance has an `owner` attribute.
     """
+    #pass
 
     def has_object_permission(self, request, view, obj):
         print('here')
@@ -78,8 +76,6 @@ class subscriptionpermissions(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             print(obj.is_subscribe)
             print(request.user)
-
-
             return x.is_subscribe == True
 
         print(request.method)
@@ -110,6 +106,7 @@ class subscriptionpermissions(permissions.BasePermission):
 
 
 class IsOwnerOrReadOnlyemp(permissions.BasePermission):
+    pass
     """
     Object-level permission to only allow owners of an object to edit it.
     Assumes the model instance has an `owner` attribute.
@@ -141,13 +138,13 @@ class ChangePasswordView_Orgnations(viewsets.ViewSet):
                 x=User.objects.get(id=int(userid))
                 #x.check_password('arpit764933')
             except:
-                return Response({'User id not Valid',}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'User id not valid',}, status=status.HTTP_400_BAD_REQUEST)
             if x.check_password(old_password) == True:
                 x.set_password(new_password)
                 x.save()
-                return Response({'Success': 'Successfully password Updated',}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'Success': 'Password updated successfully',}, status=status.HTTP_400_BAD_REQUEST)
             else:
-                return Response({'Pasword Not Valid',}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'Old Pasword is incorrect',}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -196,17 +193,76 @@ class CustomAuthToken(ObtainAuthToken):
         org_logo=None
         which_Organisations=None
         IS_ACCOUNTENT=None
-
+        flg=0
         try:
-            x = User.objects.get(username=request.data['username'],is_active=True)
+            usernm=request.data['username']
         except:
-            return Response({"non_field_errors": "first you have to verify your account by  the given link on email then you are abel to log in "})
+            return Response('Pls enter username ')
+        try:
+            request.data['password']
+        except:
+            return Response('Pls enter password ')
 
 
+        def check_org():
+            #org1=None
+            password=0
+            print('====================dfsll')
+
+            try:
+                print('usernm',usernm)
+                user1=User.objects.get(username=usernm)
+                print('212............',user1)
+                password=request.data['password']
+
+            except:
+                return Response('invalid username ')
+
+            if user1.check_password(password)==False:
+                return Response('invalid password')
+            else:
+                pass
+            try:
+                org1=Organisations.objects.get(which_user=user1.id)
+                if org1.is_email_verify==False:
+                    return Response('first you have to verify your account by  the given link on email then you are abel to log in ')
+
+            except:
+                pass
+            if org1.is_subscribe==False:
+                return Response('Your subscription has been expired!')
+            try:
+                x = User.objects.get(username=request.data['username'],is_active=True)
+            except:
+                return Response('your account is suspended or inactive please contact admin')
+            return 1
+        #print('usernmusernmusernmusernmusernmusernm ',usernm)
+        if usernm[0:4]=='FIRM':
+            #print('=====================240',usernm)
+            flg=check_org()
+            if flg!=1:
+                return flg
+            else:
+                pass
+        else:
+            pass
+
+        #print('d32222222222',flg)
         serializer = self.serializer_class(data=request.data,
                                            context={'request': request})
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
+
+
+
+
+
+
+
+
+
+
+
 
 
         try:
@@ -271,7 +327,7 @@ class CustomAuthToken(ObtainAuthToken):
             'token': token.key,
             'user_name':user.username,
             'user_id': user.pk,
-            'email': user.email,'First_Name':Fname,'Last_Name':Lname,'pic':p,'Emp_ID':Emp_id,'org_id':which_Organisations,'IS_ACCOUNTENT':IS_ACCOUNTENT,'Org_Name':org_name,'logo':org_logo})
+            'email': user.email,'First_Name':Fname,'Last_Name':Lname,'pic':p,'emp_id':Emp_id,'org_id':which_Organisations,'IS_ACCOUNTENT':IS_ACCOUNTENT,'org_name':org_name,'logo':org_logo})
 
             except:
                 pass
@@ -292,7 +348,7 @@ class CustomAuthToken(ObtainAuthToken):
             'token': token.key,
             'user_name':user.username,
             'user_id': user.pk,
-            'email': user.email,'First_Name':org.Contact_pesion_First_name,'Last_Name':org.Contact_pesion_Last_name,'Name':name,'org_id':org_id,'logo':limg,'admin_image':img_admin,'Active':org.is_active})
+            'email': user.email,'First_Name':org.Contact_pesion_First_name,'Last_Name':org.Contact_pesion_Last_name,'org_name':name,'org_id':org_id,'logo':limg,'pic':img_admin,'Active':org.is_active})
             else:
                     return Response({'Error':'user is not superuser ....... !!'}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -324,7 +380,8 @@ class setpassword_forgotviewset_for_org(viewsets.ViewSet):
             new_password=serializer.data['Enter_new_password']
             conform_password=serializer.data['Confrom_password']
             try:
-                x=User.objects.get(username=email)
+                x=User.objects.filter(email=email)
+                x=x[1]
                 y=Organisations.objects.get(which_user=x.id)
             except:
                 return Response({'Email Not Valid',}, status=status.HTTP_400_BAD_REQUEST)
@@ -332,12 +389,18 @@ class setpassword_forgotviewset_for_org(viewsets.ViewSet):
                 return Response({'Password Dose Not Match',}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 pass
+            print('y.otp_forgot_password',y.otp_forgot_password)
+            print('y.otp_forgot_password',otp)
             if y.otp_forgot_password !=otp:
                 return Response({'Invalid Otp',}, status=status.HTTP_400_BAD_REQUEST)
             else:
-                x=User.objects.get(username=email)
+                x=User.objects.filter(email=email)
+                x=x[1]
                 x.set_password(new_password)
                 x.save()
+                y.is_active=True
+                y.is_email_verify=True
+                y.save()
                 return Response({'Success': 'Successfully completed the  process',}, status=status.HTTP_200_OK)
 
         else:
@@ -370,6 +433,7 @@ class SendConfirmUserMail(APIView):
             try:
                 x=User.objects.get(username=username)
                 y=Organisations.objects.get(which_user=x.id)
+                y.is_email_verify=True
                 y.is_active=True
                 y.save()
 
@@ -394,59 +458,127 @@ class SendConfirmUserMailfor_otp_login(viewsets.ViewSet):
             otp=request.data['Enter_your_otp']
             h=request.data['hash']
 
+            eui=h.split(':')
+            eui=eui[0]
+            try:
+                print('eui ===========',eui)
+                Employee_data.objects.get(Employee_Uniqe_id=eui)
+            except:
+                h='FIRM-'+h
+
+
             #h=h.strip()
             #print(h)
             #print('len of hash ',len(h))
 
             #print(h)
-            try:
-                name =h
-                #print(username)
-                p=str(name)
-                print('name =============================',name)
-                #print('try .............................',name)
-                y=p.split(':')
-                y=y[0]
-                print('try .............................',y)
-
-                qry=Employee_data.objects.get(Employee_Uniqe_id=y)
-
-                oottp=qry.Employee_otp
-                user = get_object_or_404(User.objects.all(),username=name)
-
-                otp=otp.strip()
-                print(otp)
+            if h[0:4]!='FIRM':
 
 
-                if oottp==str(otp):
-                    try:
+                try:
+                    name =h
+                    #print(username)
+                    p=str(name)
+                    print('name =============================',name)
+                    #print('try .............................',name)
+                    y=p.split(':')
+                    y=y[0]
+                    print('try .............................',y)
 
-                        token = Token.objects.get(user=user).delete()
-                    except:
-                        pass
-                    token, created = Token.objects.get_or_create(user=user)
-                    print('==================================================================== h =312 id ur',user.id,user)
+                    qry=Employee_data.objects.get(Employee_Uniqe_id=y)
 
-                    qry.Employee_otp=None
-                    WID=qry.which_user_id
-                    qry.save()
+                    oottp=qry.Employee_otp
+                    user = get_object_or_404(User.objects.all(),username=name)
 
-                    print('================================')
-                    return Response({
-                    'token': token.key,
-                    'user_id':WID,
-			        'Emp_ID':qry.id,
-                    'IS_ACCOUNTENT':qry.IS_ACCOUNTENT,
-                    'org_id':qry.which_Organisations.id,
+                    otp=otp.strip()
+                    print(otp)
 
 
+                    if oottp==str(otp):
+                        try:
 
-			}, status=status.HTTP_200_OK)
-                else:
-                    return Response({'Error':'OTP is wrong'}, status=status.HTTP_400_BAD_REQUEST)
+                            token = Token.objects.get(user=user).delete()
+                        except:
+                            pass
+                        token, created = Token.objects.get_or_create(user=user)
+                        print('==================================================================== h =312 id ur',user.id,user)
 
-            except:
-                return Response({'Error':'Invalid Username'}, status=status.HTTP_400_BAD_REQUEST)
+                        qry.Employee_otp=None
+                        WID=qry.which_user_id
+                        qry.save()
+
+                        print('================================')
+                        return Response({
+                        'token': token.key,
+                        'user_id':WID,
+                        'Emp_ID':qry.id,
+                        'IS_ACCOUNTENT':qry.IS_ACCOUNTENT,
+                        'org_id':qry.which_Organisations.id,
+
+
+
+                }, status=status.HTTP_200_OK)
+                    else:
+                        return Response({'Error':'OTP is wrong'}, status=status.HTTP_400_BAD_REQUEST)
+
+                except:
+                    return Response({'Error':'Invalid Username'}, status=status.HTTP_400_BAD_REQUEST)
+
+            else:
+
+                try:
+                    name =h
+                    #print(username)
+                    p=str(name)
+                    print('name =============================',name)
+                    #print('try .............................',name)
+                    y=p.split(':')
+                    y=y[0]
+                    #print('try .............................',y)
+                    #print(y)
+                    print('otp.......................')
+
+                    qry=Organisations.objects.get(org_uni_id=y)
+
+                    oottp=qry.otp
+
+                    user = get_object_or_404(User.objects.all(),username=name)
+
+                    otp=otp.strip()
+                    print(otp)
+
+
+                    if oottp==str(otp):
+                        try:
+
+                            token = Token.objects.get(user=user).delete()
+                        except:
+                            pass
+                        token, created = Token.objects.get_or_create(user=user)
+                        print('==================================================================== h =312 id ur',user.id,user)
+
+                        qry.otp=None
+                        WID=qry.which_user_id
+                        qry.save()
+
+                        print('================================')
+                        return Response({
+                        'token': token.key,
+                        'user_id':WID,
+                        'org_id':qry.id,
+
+
+
+
+
+                }, status=status.HTTP_200_OK)
+                    else:
+                        return Response({'Error':'OTP is wrong'}, status=status.HTTP_400_BAD_REQUEST)
+
+                except:
+                    return Response({'Error':'Invalid Username'}, status=status.HTTP_400_BAD_REQUEST)
+
+
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -484,6 +616,13 @@ class Organisation_get_serializerviewset(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
     def get_queryset(self):
         user=self.request.user
+        user=user.username
+        user=user.split(':')
+
+        user=user[0]
+        user=user+':web'
+        user=User.objects.get(username=user)
+        print('line 617 ============',user)
         queryset = Organisations.objects.all().filter(which_user=user.id)
         return queryset
     serializer_class = Organisation_get_serializer
@@ -547,18 +686,26 @@ class Employee_otp_loginviewset(viewsets.ViewSet):
 
 class EmployeeUserCreationViewSet(viewsets.ViewSet):
     authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,subscriptionpermissions)
+    permission_classes = (IsAuthenticated,)
 
 
     def create(self, request):
-        usr=request.user
+        user=self.request.user
+        user=user.username.split(':')
+        user=user[0]+str(':web')
+        usr=User.objects.get(username=user)
+
+
+
+        #usr=request.user
         x=Organisations.objects.get(which_user=usr)
         if x.is_subscribe==False:
-            return Response('you have not any purchased any subscription or may be your subscription is expired')
+            return Response('you have not purchased any subscription or may be your subscription is expired')
         else:
             pass
-        serializer = Employee_data_serializers(data=request.data)
-        print('===========================',request.data)
+
+        serializer = Employee_data_serializers(data=request.data,context={'request':request})
+        #print('===========================',request.data)
         if serializer.is_valid():
             this_user = serializer.save()
             #now = UserSerializer(this_user)
@@ -591,54 +738,146 @@ class Employee_otp_varifyserializersviewSet(viewsets.ViewSet):
 
         if serializer.is_valid():
             emp_code=request.data['Employee_code']
+            #print(emp_code)
             serializer.save()
-            x=User.objects.get(username=emp_code)
-            eui=x.username
-            eui=eui.split(':')
+
+             #xy=validated_data['Employee_code']
+            eui=emp_code.split(':')
             eui=eui[0]
-            y=Employee_data.objects.get(Employee_Uniqe_id=eui)
-            name=y.Employee_First_Name +' '+y.Employee_Last_Name
-            z=Organisations.objects.get(id=y.which_Organisations_id)
-            encp=y.Employee_mobile_number
-            len(encp)
-            mob=str()
-            l=[]
-            for i in range(len(encp)):
-                if i==0:
-                    l.append(encp[i])
-                elif i==(len(encp)-1):
-                    l.append(encp[i])
-                elif i==(len(encp)-2):
-                    l.append(encp[i])
-                else:
-                    l.append('x')
-            for i in l:
-                mob=mob+str(i)
-                try:
-                    img=str(y.Employee_image.url)
-                except:
-                    img =None
-            data_dict = {'ID':y.id,'Image':img,'Mobile_Number':mob,'Name':name,'Organisations_Name':z.Organisations_name,'Employee_code':y.Employee_Uniqe_id}
-            return Response (data_dict)
+            try:
+                print('eui ===========',eui)
+                Employee_data.objects.get(Employee_Uniqe_id=eui)
+            except:
+                emp_code='FIRM-'+emp_code
+                #print('hiiiiiiiiiiiiiii')
+            #print('xy==',xy[0:4])
+            if emp_code[0:4]!='FIRM':
+                x=User.objects.get(username=emp_code)
+                eui=x.username
+                eui=eui.split(':')
+                eui=eui[0]
+                y=Employee_data.objects.get(Employee_Uniqe_id=eui)
+
+                lnm=y.Employee_Last_Name
+                fnm=y.Employee_First_Name
+                if lnm==None:
+                    lnm=''
+                elif fnm==None:
+                    fnm=''
+
+
+                #try:
+                 #
+                #except:
+                  #  fnm=' '
+                print('680 =========',lnm)
+                print('681 =========',fnm)
+
+
+                name=fnm +' '+lnm
+                z=Organisations.objects.get(id=y.which_Organisations_id)
+                encp=y.Employee_mobile_number
+                len(encp)
+                mob=str()
+                l=[]
+                for i in range(len(encp)):
+                    if i==0:
+                        l.append(encp[i])
+                    elif i==(len(encp)-1):
+                        l.append(encp[i])
+                    elif i==(len(encp)-2):
+                        l.append(encp[i])
+                    else:
+                        l.append('x')
+                for i in l:
+                    mob=mob+str(i)
+                    try:
+                        img=str(y.Employee_image.url)
+                    except:
+                        img =None
+                data_dict = {'ID':y.id,'Image':img,'Mobile_Number':mob,'Name':name,'Organisations_Name':z.Organisations_name,'Employee_code':y.Employee_Uniqe_id}
+                return Response (data_dict)
+            else:
+                print('line no 724...........',emp_code)
+
+                x=User.objects.get(username=emp_code)
+                print('line no 724...........')
+                eui=x.username
+                eui=eui.split(':')
+                eui=eui[0]
+                y=Organisations.objects.get(org_uni_id=eui)
+
+                lnm=y.Contact_pesion_First_name
+                fnm=y.Contact_pesion_Last_name
+                z=y.Organisations_name
+                if lnm==None:
+                    lnm=''
+                elif fnm==None:
+                    fnm=''
+
+                name=fnm +' '+lnm
+                #z=Organisations.objects.get(id=y.which_Organisations_id)
+                encp=y.Organisation_mobile_number
+                len(encp)
+                mob=str()
+                l=[]
+                for i in range(len(encp)):
+                    if i==0:
+                        l.append(encp[i])
+                    elif i==(len(encp)-1):
+                        l.append(encp[i])
+                    elif i==(len(encp)-2):
+                        l.append(encp[i])
+                    else:
+                        l.append('x')
+                for i in l:
+                    mob=mob+str(i)
+                    try:
+                        img=str(y.Admin_img.url)
+                    except:
+                        img =None
+                data_dict = {'ID':y.id,'Image':img,'Mobile_Number':mob,'Name':name,'Organisations_Name':z,'Employee_code':y.org_uni_id}
+                return Response (data_dict)
+
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class Employee_edit_serializerViewset(viewsets.ModelViewSet):
     authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,subscriptionpermissions)
+    permission_classes = (IsAuthenticated,)
     queryset = Employee_data.objects.all()
     serializer_class = Employee_edit_serializer
-    http_method_names = ['patch','put','option','head','delete','get']
+    http_method_names = ['patch','put','option','head','delete']
 
 
 class Employee_get_serializerViewset(viewsets.ModelViewSet):
 
     authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,subscriptionpermissions)
+    permission_classes = (IsAuthenticated,)
     filter_backends = [DjangoFilterBackend]
     filterset_fields=['createdBy','which_Organisations','Employee_Uniqe_id']
-    queryset = Employee_data.objects.all()
+    def get_queryset(self):
+        user=self.request.user
+        user=user.username.split(':')
+        user=user[0]+str(':web')
+        print('===================714',user)
+        usr=User.objects.get(username=user)
+        un=usr.username
+        print(un[0:4])
+        if un[0:4]=='FIRM':
+            queryset = Employee_data.objects.all().filter(createdBy=usr)
+
+        else:
+            x=Employee_data.objects.get(which_user=usr)
+            print(x.which_Organisations)
+
+            queryset = Employee_data.objects.all().filter(which_Organisations=x.which_Organisations)
+            pass
+
+
+
+        return queryset
     serializer_class = Employee_get_serializer
     http_method_names = ['get','head','option']
 
@@ -654,15 +893,25 @@ class Task_serializersViewset(viewsets.ModelViewSet):
 
     queryset = Task.objects.all()
     serializer_class = Task_serializers
+
     http_method_names = ['get','patch','put','option','head','post','delete']
 
 class Category_serializerviewset(viewsets.ModelViewSet):
     authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,IsOwnerOrReadOnly)
+    permission_classes = (IsAuthenticated,)
     def get_queryset(self):
         org=0
-        usr=self.request.user
-        if usr.username == usr.email:
+        user=self.request.user
+        user=user.username.split(':')
+        user=user[0]+str(':web')
+        usr=User.objects.get(username=user)
+
+        #print('user 666', us)
+        #usr=User.objects.get()
+        #usr=self.request.user
+        print('user id ',usr.id)
+        x=Organisations.objects.get(which_user=usr.id)
+        if usr.username == x.which_user.username:
             #org=2
             queryset=Category.objects.all().filter(which_Organisations=usr.id)
             return queryset
@@ -692,17 +941,22 @@ class SubCategory_get_serializerviewset(viewsets.ModelViewSet):
     serializer_class = SubCategory_get_serializers
     def get_queryset(self):
         org=0
-        usr=self.request.user
-        if usr.username == usr.email:
+        user=self.request.user
+        user=user.username.split(':')
+        user=user[0]+str(':web')
+        x=User.objects.get(username=user)
+        org=Organisations.objects.get(which_user=x.id)
+        if org.is_subscribe ==False:
+            return Response('you have not any purchased any subscription or may be your subscription is expired')
+        else:
+            pass
+        if x.username ==org.which_user.username:
             queryset=SubCategory.objects.all()
             return queryset
 
         else:
             queryset=None
         return queryset
-
-
-
     filter_backends = [DjangoFilterBackend]
     filterset_fields=['Category__Category_name','Category__id']
 
@@ -712,12 +966,22 @@ class Task_get_serializersviewset(viewsets.ModelViewSet):
     #print('vcvsycvysvyasvcysvcasvcjsvjc')
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields=['Task_Status','Task_assignment_to','createdBy']
+#    filter_backends = [DjangoFilterBackend]
+ #   filterset_fields=['Task_Status','Task_assignment_to','createdBy']
     #authentication_classes = (TokenAuthentication,)
     #permission_classes = (IsAuthenticated,)
-    queryset = Task.objects.all()
+    def get_queryset(self):
+        user=self.request.user
+        user=user.username
+        user=user.split(':')
+        user=user[0]
+        user=user+':web'
+        user=User.objects.get(username=user)
+        print('user======826',user)
+        resultquery = ((Q(Task_assignment_to=user.id) | Q(createdBy=user.id))|Q(which_manager=user.id))
+        queryset=Task.objects.filter(resultquery)
 
+        return queryset
     serializer_class= Task_get_serializers
 
     http_method_names = ['get','head','option']
@@ -742,7 +1006,7 @@ class Client_get_serializerviewset(viewsets.ModelViewSet):
 
 class Client_Edit_serializervieswset(viewsets.ModelViewSet):
     authentication_classes = (TokenAuthentication,)
-    permission_classes = [IsAuthenticated,subscriptionpermissions]
+    permission_classes = (IsAuthenticated,)
     queryset = Client.objects.all()
     serializer_class = Client_Edit_serializer
     http_method_names =  ['get','post','head','option','patch','put']
@@ -907,8 +1171,9 @@ class Pyment_create_serializerviewet2(viewsets.ViewSet):
             Amount=serializer.data['Amount']
             is_active=serializer.data['is_active']
             package_name=serializer.data['package_name']
-            x=Payment.objects.create(Organisation_name=Organisation_name,Response=Response1,Ordr_ID=Ordr_ID,Payment_Method=Payment_Method,Amount=Amount,is_active=is_active,package_name=package_name,createdBy=createdBy)
-            return Response('done')
+            pkg=Packages.objects.get(id=package_name)
+            x=Payment.objects.create(Organisation_name=Organisation_name,Response=Response1,Ordr_ID=Ordr_ID,Payment_Method=Payment_Method,Amount=Amount,is_active=is_active,package_name=pkg,createdBy=createdBy)
+            return Response({'id':x.id,'package_name':package_name})
 
         else:
             return Response('vchsvhdvc')
@@ -973,14 +1238,23 @@ class get_task_allviewset(viewsets.ViewSet):
         serializer=get_task_all_serializer(data=request.data)
         N,P,Com,I,CA,=0,0,0,0,0
         ttl=0
+        flg=0
 
 
         if serializer.is_valid():
             id=serializer.data['User_ID']
-            print('id = =============================',id)
-            x=Employee_data.objects.get(which_user=id)
+            usernm=User.objects.get(id=id).username
 
-            if x.IS_ACCOUNTENT==True:
+            #print('id = =============================',id)
+            if usernm[0:4]=='FIRM':
+                flg=1
+                #print('==================1075',usernm)
+            else:
+                pass
+#            x=Employee_data.objects.get(which_user=id)
+            print()
+
+            if flg==1:
                 tsk=Task.objects.filter(createdBy=id)
             else:
                 tsk=Task.objects.filter(Task_assignment_to=id)
@@ -1023,37 +1297,64 @@ class bar_chart_serializerviewset(viewsets.ViewSet):
     def create(self,request):
         serializer=bar_chart_serializer(data=request.data)
         date=datetime.date.today()
+        flg=0
         l=[]
         countl=[]
         weeklyd=set()
         tsk2=Task.objects.all()
         for i in tsk2:
             l.append(i.Task_Created_at.date())
-          #  i.Task_Created_at
         print(l)
 
             #Task.objects.filter(Task_Created_at__in=[],Task_Created_at__lte=).count()
         if serializer.is_valid():
             User_ID=serializer.data['User_ID']
             try:
-                x=Employee_data.objects.get(which_user=User_ID)
-                if x.IS_ACCOUNTENT==True:
+                Task_Status=serializer.data['Task_Status']
+            except:
+                Task_Status='Pending'
+            print('Task_Status',Task_Status)
+            try:
+                Task_Statusl=['Pending','New','In Progress','Complete','Cancel','Invoice Paid']
+                if Task_Status not in Task_Statusl:
+                    return Response('invalid Task Status')
+                else:
+                    pass
+            except:
+                pass
+
+            x=User.objects.get(id=User_ID)
+            p=x.username
+            if p[0:4]=='FIRM':
+                flg=11
+            else:
+                flg=1
+
+            try:
+                if flg==11:
                     x=1
                     l.clear()
-                    lmn=Task.objects.filter(createdBy=User_ID)
+                    x12=User.objects.get(id=User_ID)
+                    org=Organisations.objects.get(which_user=x12)
+
+
+                    lmn=Task.objects.filter(which_organisation=org.id)
 
                     for i in lmn:
-                        if i.Task_Status=='Pending':
+                        if i.Task_Status==Task_Status:
                             l.append(i.Task_Created_at.date())
                         else:
                             pass
+                    print('l================',l)
                 else:
+                    print('line =============12else ')
+                    x=Employee_data.objects.get(which_user=User_ID)
                     x=1
                     l.clear()
                     lmn=Task.objects.filter(Task_assignment_to=User_ID)
 
                     for i in lmn:
-                        if i.Task_Status=='Pending':
+                        if i.Task_Status==Task_Status:
                             l.append(i.Task_Created_at.date())
                         else:
                             pass
@@ -1064,7 +1365,7 @@ class bar_chart_serializerviewset(viewsets.ViewSet):
 
             Choices=serializer.data['Choices']
             if x==1:
-                print('3u42384238y483yr8yr8ohewheukdbjh rcf vbcdf vbcdfv bhn',x)
+
                 for i2 in l:
                     if Choices=='today':
                         if ((date-i2).days) ==0:
@@ -1166,7 +1467,13 @@ class panding_amt_serializerviewset(viewsets.ViewSet):
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
     def create(self,request):
-        x=Task.objects.filter(is_paid=False)
+        user=request.user
+        try:
+            org=Organisations.objects.get(which_user=user.id)
+        except:
+            org=Employee_data.objects.get(which_Organisations=user.id)
+        print('user============1471..',user)
+        x=Task.objects.filter(is_paid=False,which_organisation=org)
         s=set()
         b=0
         cut=0
@@ -1190,7 +1497,12 @@ class panding_amt_serializerviewset(viewsets.ViewSet):
 
 
             #Client.objects.filter(id=i.Task_Client_name_id)
-        s.remove(None)
+        try:
+            print('line no ......1459')
+            s.remove(None)
+            print('line no ......1461')
+        except:
+            pass
 
         for i in s:
             name.append(Client.objects.get(id=i).Client_name)
@@ -1284,27 +1596,54 @@ class Category_serializerpostviewset(viewsets.ViewSet):
     permission_classes = (IsAuthenticated,)
     def create(self,request):
         serializer=Category_serializer(data=request.data)
-        x=self.request.user
-        if x.username ==x.email:
+        user=self.request.user
+        user=user.username.split(':')
+        user=user[0]+str(':web')
+        x=User.objects.get(username=user)
+
+        #x=self.request.user
+        org=Organisations.objects.get(which_user=x.id)
+
+        #print('x.username',x.username)
+        #print('org.which_user',org.which_user)
+        if org.is_subscribe ==False:
+            return Response('you have not any purchased any subscription or may be your subscription is expired')
+        else:
+            pass
+
+
+        if x.username ==org.which_user.username:
             if serializer.is_valid():
-                serializer.save()
+                name=serializer.data['Category_name']
+
+                Category.objects.create(Category_name=name,which_Organisations=x)
+
+                #serializer.save()
                 return Response('done')
             else:
                 return Response(serializer.errors)
         else:
             return Response('you are not Admin')
     def partial_update(self,request,pk=None):
-        instance = Category.objects.get(id=pk)
-        serializer=Category_serializer(instance,data=request.data,partial=True)
+        try:
+            instance = Category.objects.get(id=pk)
+            print('instance =============================',instance)
+            serializer=Category_serializer(instance,data=request.data,partial=True)
+        except:
+            pass
         x=self.request.user
-        if x.username ==x.email:
+        org=Organisations.objects.get(which_user=x.id)
+
+
+
+        if x.username ==instance.which_Organisations.username:
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data)
             else:
                 return Response(serializer.errors)
         else:
-            return Response('you are not Admin')
+            return Response('you are not authorized to access this Action ')
 
 
 
@@ -1321,8 +1660,18 @@ class SubCategory_serializerviewset(viewsets.ViewSet):
     permission_classes = (IsAuthenticated,)
     def create(self,request):
         serializer=SubCategory_serializer(data=request.data)
-        x=self.request.user
-        if x.username ==x.email:
+        user=self.request.user
+        user=user.username.split(':')
+        user=user[0]+str(':web')
+        x=User.objects.get(username=user)
+        org=Organisations.objects.get(which_user=x.id)
+
+        if org.is_subscribe ==False:
+            return Response('you have not any purchased any subscription or may be your subscription is expired')
+        else:
+            pass
+
+        if x.username ==org.which_user.username:
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data)
@@ -1334,7 +1683,12 @@ class SubCategory_serializerviewset(viewsets.ViewSet):
         instance = SubCategory.objects.get(id=pk)
         serializer=SubCategory_serializer(instance,data=request.data,partial=True)
         x=self.request.user
-        if x.username ==x.email:
+        user=self.request.user
+        user=user.username.split(':')
+        user=user[0]+str(':web')
+        x=User.objects.get(username=user)
+        org=Organisations.objects.get(which_user=x.id)
+        if x.username ==org.which_user.username:
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data)
@@ -1356,14 +1710,9 @@ class Category_get(viewsets.ModelViewSet):
         unique=name[0]
         try:
             x=Employee_data.objects.get(Employee_Uniqe_id=unique)
-
-
             org=x.which_Organisations_id
             p=Organisations.objects.get(id=org)
-
             u=User.objects.get(id=p.which_user_id)
-
-
             queryset=Category.objects.all().filter(is_active=True).filter(which_Organisations=u.id)
         except:
             queryset=None
@@ -1421,6 +1770,122 @@ class ulpoademployeeimage(viewsets.ModelViewSet):
     queryset =Employee_data.objects.all()
     serializer_class = Imageuploademployee
     http_method_names = ['get','patch']
+
+class uploadadminimg(viewsets.ModelViewSet):
+    queryset = Organisations.objects.all()
+    serializer_class = Imageuploademployee_admin
+    http_method_names = ['get','patch']
+
+
+
+class emaillogin(viewsets.ViewSet):
+    def create(self, request):
+        serializer=orgloginserializer(data=request.data)
+
+        def org_check(user):
+            try:
+                xy=User.objects.get(username=user)
+                org1=Organisations.objects.get(which_user=xy.id)
+            except:
+                return Response('error')
+            if org1.is_email_verify==False:
+                return Response('Please verify your Email address to go through the sent Email.')
+            if x.is_active==False:
+                return Response('Your account has been suspended! Please contact administrator')
+            else:
+                pass
+
+
+            return 1
+
+
+
+        if serializer.is_valid():
+            email=serializer.data['email']
+            password=serializer.data['password']
+            try:
+                x=User.objects.filter(email=email)
+
+                x=x[1]
+                print('x==============',x)
+
+                #for i in x:
+                 #   x=i
+            except:
+                return Response('This Email is not registered with us')
+            if x.check_password(password)==False:
+
+                return Response('Incorrect Password ')
+            else:
+                flg=org_check(user=x.username)
+                if flg==1:
+                    try:
+
+                        token = Token.objects.get(user=x).delete()
+                        print('delete==========')
+                    except:
+                        pass
+                    token, created = Token.objects.get_or_create(user=x)
+                else:
+                    return flg
+            frm=x.username
+            print('frm========',frm[0:3])
+            if frm[0:4]=='FIRM':
+
+                org1=Organisations.objects.get(which_user=x.id)
+                try:
+                    logo=org1.Logo_Image.url
+                except:
+                    logo=None
+                try:
+                    pic=org1.Admin_img.url
+                except:
+                    pic=None
+
+
+                return Response({
+            'token': token.key,
+            'user_name':x.username,
+            'user_id': x.pk,
+
+            'email': x.email,'First_Name':org1.Contact_pesion_First_name,'Last_Name':org1.Contact_pesion_Last_name,'org_name':org1.Organisations_name,'org_id':org1.id,'logo':logo,'pic':pic,'Active':org1.is_active})
+
+            else:
+                return Response('You are not Firm')
+        else:
+            return Response(serializer.errors)
+
+
+
+
+'''
+        if super_user == True:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''
+
+
+
+
+
+
+            #if flg==1:
 
 
 

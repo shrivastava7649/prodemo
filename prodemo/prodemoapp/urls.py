@@ -70,6 +70,9 @@ router.register(r'updatelogo', uploadelogoimage,basename='updatelogo')
 
 
 router.register(r'updateempimage', ulpoademployeeimage,basename='updateempimage')
+router.register(r'orgauth', emaillogin,basename='updateempimage')
+router.register(r'admin_img', uploadadminimg,basename='admin_img')
+
 
 
 

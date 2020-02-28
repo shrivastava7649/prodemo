@@ -1,0 +1,32 @@
+info:
+  description: ''
+  title: ''
+  version: ''
+openapi: 3.0.0
+paths:
+  /snippets:
+    post:
+      description: List all snippets, or create a new snippet.
+      operationId: snippets_create
+      tags:
+      - snippets
+  /userauth:
+    post:
+      operationId: userauth_create
+      tags:
+      - userauth
+  /verify-account/{hash}/:
+    get:
+      operationId: verify-account_read
+      parameters:
+      - in: path
+        name: hash
+        required: true
+        schema:
+          description: ''
+          title: ''
+          type: string
+      tags:
+      - verify-account
+servers:
+- url: ''

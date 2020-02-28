@@ -27,6 +27,7 @@ SECRET_KEY = 'md2in)t6&ok-c3yi)m3=-q2ton8_)chsusrwl^5@f)^)s=6=9c'
 DEBUG = True
 
 ALLOWED_HOSTS = []
+#AUTHENTICATION_BACKENDS = ['path.to.auth.module.EmailBackend']
 
 # Application definition
 
@@ -100,6 +101,11 @@ WSGI_APPLICATION = 'prodemo.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
+
+
+
+
+
 '''
 DATABASES = {
     'default': {
@@ -171,6 +177,7 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'bitcoinora@gmail.com'
 EMAIL_HOST_PASSWORD = 'ora@#btcglobal'
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/

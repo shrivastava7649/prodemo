@@ -59,7 +59,10 @@ class Organisations_passwords_serializer(serializers.ModelSerializer):
 
     def validate(self, data):
         try:
-            x=User.objects.get(username=data['Enter_your_user_name'])
+            print('line =====================62')
+            x=User.objects.filter(email=data['Enter_your_user_name'])
+            x=x[1]
+            print('line =====================63')
         except:
             raise serializers.ValidationError("username is not valid")
         return data
@@ -77,8 +80,13 @@ class Organisations_passwords_serializer(serializers.ModelSerializer):
 
             otpf=str(otpf+str(i))
             '''
-        x=User.objects.get(username=validated_data['Enter_your_user_name'])
-        y=Organisations.objects.get(which_user =x.id)
+        x=User.objects.filter(email=validated_data['Enter_your_user_name'])
+        x=x[1]
+        try:
+            y=Organisations.objects.get(which_user =x.id)
+        except:
+            raise serializers.ValidationError("We have no organization exists with is email id")
+
 
 
         otpf=random.randint(111111,999999)
@@ -88,7 +96,8 @@ class Organisations_passwords_serializer(serializers.ModelSerializer):
 
 
         username=validated_data['Enter_your_user_name']
-        x=User.objects.get(username=validated_data['Enter_your_user_name'])
+        x=User.objects.filter(email=validated_data['Enter_your_user_name'])
+        x=x[1]
         try:
             value = signing.dumps((x.username,))
             email_body = render_to_string('forgotpassword.html',{'otp':otpf,'base_url':(base_url).strip()})
@@ -211,7 +220,7 @@ class Organisations_serializers(serializers.ModelSerializer):
                 #final_name=final_name+str(random.randint(11111,99999))
                 #print(final_name)
 
-        name=str('firm-'+final_name+str(random.randint(11111,99999)))
+        name=str('FIRM-'+final_name+str(random.randint(11111,99999)))
         p=10
         n=0
         def idcreate():
@@ -315,10 +324,7 @@ class Organisations_serializers(serializers.ModelSerializer):
 
 
 
-class Organisation_get_serializer(serializers.ModelSerializer):
-    class Meta:
-        model = Organisations
-        fields =('id','Organisations_name','Organisations_email','Contact_pesion_First_name','Contact_pesion_Last_name','Organisation_mobile_number','Organisations_Uniqe_id','is_active','createdAt','updatedAt','which_user','Logo_Image')
+
 
 class Organisation_edit_serializer(serializers.ModelSerializer):
     class Meta:
@@ -349,26 +355,56 @@ class Employee_data_serializers(serializers.ModelSerializer):
     Employee_mobile_number=serializers.CharField(allow_blank=False, write_only=True)
     Employee_DOJ=serializers.DateField(required=False)
     IS_ACCOUNTENT=serializers.BooleanField(default=False)
-    which_Organisations=serializers.IntegerField()
+    which_Organisations=serializers.IntegerField(required=False)
     #Employee_image=serializers.ImageField(max_length=None, use_url=True, allow_null=True, required=False)
+    current_user = serializers.SerializerMethodField('_user')
+
+    # Use this method for the custom field
+    def _user(self, obj):
+        request = getattr(self.context, 'request', None)
+        if request:
+            print('request.user',request.user)
+            return request.user
+
+
+
+
     def validate(self, data):
 
+
         if data['password'] != data.pop('password_confirmation'):
+
+
+            #print('==================',current_user)
             raise serializers.ValidationError("Passwords do not match")
 
         try:
-            p=data['which_Organisations']
-            x=Organisations.objects.get(pk=p)
+            pass
+            #p=data['which_Organisations']
+
+            #x=Organisations.objects.get(pk=p)
             which_Organisations=x.Organisations_email
 
         except:
-            raise serializers.ValidationError(" Id not match")
+            pass
+           # raise serializers.ValidationError(" Id not match")
         #which_Organisations=x.Organisations_email
 
         return data
     def create(self, validated_data):
+        x=self.context['request'].user
+        #print('x ..... 395',x)
+        user=x
+        user=user.username.split(':')
+        user=user[0]+str(':web')
+        usr=User.objects.get(username=user)
+       # print('===================393',usr)
+        which_Organisation=Organisations.objects.get(which_user=usr.id)
+        #print('usr ..... 395',usr)
+        #print('usr........396',usr.username)
         #Employee_DOJ1=None
         #EmployeeDOB1=None
+
         First_name=validated_data['Employee_First_name']
         Last_name=validated_data['Employee_Last_name']
         #Addres=validated_data['Employee_addres']
@@ -380,7 +416,7 @@ class Employee_data_serializers(serializers.ModelSerializer):
         except:
             cb=None
 
-        print('cb==========',cb)
+       # print('cb==========',cb)
         validated_data.pop('createdBy',None)
         password = validated_data['password']
         validated_data.pop('password', None)
@@ -388,8 +424,8 @@ class Employee_data_serializers(serializers.ModelSerializer):
         Employee_name=validated_data['Employee_First_name']
         Employee_name=Employee_name+'  '+str(validated_data['Employee_Last_name'])
 
-        p=validated_data['which_Organisations']
-        x=Organisations.objects.get(pk=p)
+        #p=validated_data['which_Organisations']
+        x=Organisations.objects.get(pk=which_Organisation.id)
         which_Organisations=x.Organisations_email
         org_id=x.Organisations_Uniqe_id
         #print('===========================================================org id ',org_id)
@@ -434,10 +470,10 @@ class Employee_data_serializers(serializers.ModelSerializer):
             EmployeeDOJ1=validated_data['Employee_DOJ']
         except:
             EmployeeDOJ1=None
-        Organisations_name=int(validated_data['which_Organisations'])
-        oid=Organisations.objects.get(id=Organisations_name)
-        print('========================================',Organisations_name)
-        print('========================================',type(Organisations_name))
+        #Organisations_name=int(validated_data['which_Organisations'])
+        #oid=Organisations.objects.get(id=Organisations_name)
+       # print('========================================',Organisations_name)
+        #print('========================================',type(Organisations_name))
         #imgemp=validated_data['Employee_image']
         #validated_data.pop('Employee_image',None)
         validated_data.pop('which_Organisations',None)
@@ -473,12 +509,12 @@ class Employee_data_serializers(serializers.ModelSerializer):
 
         print('EmployeeDOB1===========================',EmployeeDOB1)
 
-        Employee_data.objects.create(Employee_email=email,Employee_mobile_number=mob,which_user=user,Employee_Uniqe_id=Employee_Uniqe_idf,which_Organisations=oid,Employee_First_Name=First_name,Employee_Last_Name=Last_name,createdBy=cbx,Employee_DOB=EmployeeDOB1,Employee_DOJ=EmployeeDOJ1)
+        Employee_data.objects.create(Employee_email=email,Employee_mobile_number=mob,which_user=user,Employee_Uniqe_id=Employee_Uniqe_idf,which_Organisations=which_Organisation,Employee_First_Name=First_name,Employee_Last_Name=Last_name,createdBy=usr,Employee_DOB=EmployeeDOB1,Employee_DOJ=EmployeeDOJ1)
         return user
 
     class Meta:
         model = User
-        fields = ( 'password', 'which_Organisations','password_confirmation','email','Employee_mobile_number','IS_ACCOUNTENT','Employee_First_name','Employee_Last_name','createdBy','Employee_DOB','Employee_DOJ')
+        fields = ( 'password', 'which_Organisations','password_confirmation','email','Employee_mobile_number','IS_ACCOUNTENT','Employee_First_name','Employee_Last_name','createdBy','Employee_DOB','Employee_DOJ','current_user')
 
 
 
@@ -490,49 +526,110 @@ class Employee_otp_varifyserializers(serializers.ModelSerializer):
             x=User.objects.get(username=data['Employee_code'])
 
         except:
-            raise serializers.ValidationError("Id not found  ")
+            try:
+                org=data['Employee_code']
+                org='FIRM-'+org
+                x=User.objects.get(username=org)
+            except:
+                raise serializers.ValidationError("This Employee Code does not exist")
 
         return data
     def create(self, validated_data):
-        mob=0
-        email=''
-        x=User.objects.get(username=validated_data['Employee_code'])
-        p=str(x.username)
-        y=p.split(':')
-        print('=======================',y)
-        y=str(y[0])
-        otp=str(random.randint(111111,999999))
-        #x.last_name=otp
-        #x.save()
-        #print(data['Emter_your_Employee_code'])
-        #print('y====================================',y)
-        Employee_data.objects.filter(Employee_Uniqe_id=y).update(Employee_otp=otp)
-
-        mobl=Employee_data.objects.filter(Employee_Uniqe_id=y)
-        print('mobl ===============',mobl)
-        for i in mobl:
-            mob=i.Employee_mobile_number
-            email=i.Employee_email
-        #mob=mobl.Employee_mobile_number
-        print('mob = ',mob)
-        print('emil =',email)
-        massage='''Your otp is {} for CAFIRM login'''.format(str(otp))
-        senders='CAFIRM'
-        url="""http://flitsms.in/api/sendhttp.php?authkey=150365AXdLl3PJwG59b3d280&mobiles={}&message={}&sender={}&route=4&country=91""".format(mob,massage,senders)
-        print('=====',url)
-
-
-
-
+        xy=validated_data['Employee_code']
+        eui=xy.split(':')
+        eui=eui[0]
         try:
-            #value = signing.dumps((x.username,))
-            value=x.username
-            x=requests.get(url)
-            print('====================================================== status code',x.status_code)
-            send_mail('your OTP       '+otp, (base_url).strip()+'app/employeeotp_varify123/   '+value+'/', 'bitcoinora@gmail.com', [email])
-        #value=x.username
+            print('eui ===========',eui)
+            Employee_data.objects.get(Employee_Uniqe_id=eui)
         except:
-            pass
+            xy='FIRM-'+xy
+            print('hiiiiiiiiiiiiiii')
+        print('xy==',xy[0:4])
+        if xy[0:4]!='FIRM':
+            mob=0
+            email=''
+
+            x=User.objects.get(username=xy)
+            p=str(x.username)
+            y=p.split(':')
+            print('=======================',y)
+            y=str(y[0])
+            otp=str(random.randint(111111,999999))
+            #x.last_name=otp
+            #x.save()
+            #print(data['Emter_your_Employee_code'])
+            print('y====================================544',y)
+            Employee_data.objects.filter(Employee_Uniqe_id=y).update(Employee_otp=otp)
+
+            mobl=Employee_data.objects.filter(Employee_Uniqe_id=y)
+            print('mobl ===============',mobl)
+            for i in mobl:
+                mob=i.Employee_mobile_number
+                email=i.Employee_email
+            #mob=mobl.Employee_mobile_number
+            print('mob = ',mob)
+            print('emil =',email)
+            massage='''Your otp is {} for CAFIRM login'''.format(str(otp))
+            senders='CAFIRM'
+            url="""http://flitsms.in/api/sendhttp.php?authkey=150365AXdLl3PJwG59b3d280&mobiles={}&message={}&sender={}&route=4&country=91""".format(mob,massage,senders)
+            print('=====',url)
+
+
+
+
+            try:
+                #value = signing.dumps((x.username,))
+                value=x.username
+                x=requests.get(url)
+                print('====================================================== status code',x.status_code)
+                #send_mail('your OTP       '+otp, (base_url).strip()+'app/employeeotp_varify123/   '+value+'/', 'bitcoinora@gmail.com', [email])
+            #value=x.username
+            except:
+                pass
+        else:
+            print(xy)
+
+            mob=0
+            email=''
+            x=User.objects.get(username=xy)
+            p=str(x.username)
+            y=p.split(':')
+
+            y=str(y[0])
+            otp=str(random.randint(111111,999999))
+            #x.last_name=otp
+            #x.save()
+            #print(data['Emter_your_Employee_code'])
+            print('y====================================544',y)
+            Organisations.objects.filter(org_uni_id=y).update(otp=otp)
+
+            mobl=Organisations.objects.filter(org_uni_id=y)
+            #Organisation_mobile_number
+            print('mobl ===============',mobl)
+            for i in mobl:
+                mob=i.Organisation_mobile_number
+                #email=i.Employee_email
+            #mob=mobl.Employee_mobile_number
+            print('mob = ',mob)
+            #print('emil =',email)
+            massage='''Your otp is {} for CAFIRM login'''.format(str(otp))
+            senders='CAFIRM'
+            url="""http://flitsms.in/api/sendhttp.php?authkey=150365AXdLl3PJwG59b3d280&mobiles={}&message={}&sender={}&route=4&country=91""".format(mob,massage,senders)
+            print('=====',url)
+
+
+
+
+            try:
+                #value = signing.dumps((x.username,))
+                value=x.username
+                x=requests.get(url)
+                print('====================================================== status code',x.status_code)
+                #send_mail('your OTP       '+otp, (base_url).strip()+'app/employeeotp_varify123/   '+value+'/', 'bitcoinora@gmail.com', [email])
+            #value=x.username
+            except:
+                pass
+
 
         return 'Done '
     class Meta:
@@ -598,7 +695,9 @@ class Employee_get_serializer(serializers.ModelSerializer):
 #class
 
 class Task_serializers(serializers.ModelSerializer):
-    #Task_assignment_to=UserSerializer()
+    #Task_assignment_to=serializers.CharField(required=False)
+    #def validate(self, req):
+
 
     class Meta:
         model=Task
@@ -679,7 +778,7 @@ class Panding_Task_get_serializers(serializers.ModelSerializer):
 
 class Category_serializer(serializers.ModelSerializer):
     #SubCategory=serializers.SerializerMethodField(read_only=True)
-   # which_Organisations=serializers.IntegerField()
+    #which_Organisations=serializers.IntegerField()
 
     class Meta:
         model=Category
@@ -845,27 +944,87 @@ class get_task_all_serializer(serializers.Serializer):
 
 
 class Task_get_serializers(serializers.ModelSerializer):
-    Name=serializers.SerializerMethodField(read_only=True)
-    def get_Name(self,obj):
-        first=''
-        last=''
 
-        x=obj.Task_assignment_to
-        #print('x===============',x.id)
-        p=Employee_data.objects.filter(which_user=x)
-        for i in p:
-            first=i.Employee_First_Name
-            last=i.Employee_Last_Name
-
-        #first=p.Employee_First_Name
-        #last=p.Employee_Last_Name
-        name=first+' '+last
-        return name
-
-
-    Task_assignment_to=UserSerializer()
     Task_Category_name=Category_serializer()
     Task_SubCategory_name=SubCategory_get_serializers()
+    Task_Client_name=Client_get_serializer()
+
+
+    Task_assignment_to=serializers.SerializerMethodField(read_only=True)
+    #SerializerMethodField(read_only=True)
+    def get_Task_assignment_to(self,obj):
+        v=0
+        l=[]
+        m=[]
+        x=obj.Task_assignment_to.values()
+        for i in x:
+            v=v+1
+            print('id ',i['id'])
+            try:
+                emp=Employee_data.objects.get(which_user=int(i['id']))
+                print('==================',emp)
+
+                name=emp.Employee_First_Name
+                id=emp.id
+
+                uniqe=emp.Employee_Uniqe_id
+                email=emp.Employee_email
+                last=emp.Employee_Last_Name
+                try:
+                    img=emp.Employee_image.url
+                except:
+                    img=None
+
+                if last==None:
+                    last=''
+                else:
+                    pass
+
+                print('===last 906',last)
+                #l.append('id:')
+                l.append(id)
+                #l.append('name:')
+                l.append(str(name+' '+last))
+                #l.append('last:')
+                #l.append(last)
+                #l.append('email:')
+                l.append(uniqe)
+                l.append(img)
+                l.append(email)
+
+                #l.append('uniqe_id:')
+
+            except:
+                pass
+            m.append(tuple(l))
+            l.clear()
+
+        #print('================914',l)
+        #print('v==',v)
+
+
+
+        print(m)
+
+
+
+
+
+
+
+        return m
+    '''
+    def get_which_manager(self,obj):
+        print(self)
+        '''
+
+
+
+
+
+
+
+
     #Task_attchments=attachments_serializers(many=True)
     #Task_assignment_to=accounts_serializer_edit()
     #createdBy=UserSerializer()
@@ -877,6 +1036,7 @@ class Task_get_serializers(serializers.ModelSerializer):
 class bar_chart_serializer(serializers.Serializer):
     User_ID=serializers.IntegerField()
     Choices=serializers.CharField()
+    Task_Status=serializers.CharField(required=False)
 
 class xyzserializer(serializers.ModelSerializer):
     date =serializers.DateField(datetime.datetime.now(),required=False)
@@ -954,6 +1114,14 @@ class update_password_serializer(serializers.Serializer):
 
 
 
+class Organisation_get_serializer(serializers.ModelSerializer):
+    which_user=UserSerializer()
+    class Meta:
+        model = Organisations
+        fields =('id','Organisations_name','Organisations_email','Contact_pesion_First_name','Contact_pesion_Last_name','Organisation_mobile_number','Organisations_Uniqe_id','is_active','createdAt','updatedAt','which_user','Logo_Image')
+
+
+
 class ImageSerializer(serializers.ModelSerializer):
     Logo_Image = Base64ImageField(max_length=None, use_url=True,)
     # Base64ImageField(max_length=None, use_url=True,)
@@ -967,5 +1135,13 @@ class Imageuploademployee(serializers.ModelSerializer):
     class Meta:
         model=Employee_data
         fields = ['Employee_image']
+class Imageuploademployee_admin(serializers.ModelSerializer):
+    Admin_img=Base64ImageField(max_length=None, use_url=True,)
+    class Meta:
+        model=Organisations
+        fields = ['Admin_img']
 
 
+class orgloginserializer(serializers.Serializer):
+    email=serializers.EmailField(required=True)
+    password=serializers.CharField(required=True)

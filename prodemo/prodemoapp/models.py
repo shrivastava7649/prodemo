@@ -14,6 +14,9 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
 
 
 
+
+
+
 ''''
 class subscription_packages(models.Model):
     Package_Name=models.CharField(max_length=25,blank=True,null=True)
@@ -55,13 +58,15 @@ class Organisations(models.Model):
     Contact_pesion_Last_name=models.CharField(max_length=25,blank=True,null=True)
     Organisation_mobile_number=models.CharField(max_length=25,blank=True,null=True)
     Organisations_Uniqe_id=models.CharField(max_length=25,blank=True,null=True)
+    Org_address=models.CharField(max_length=150,blank=True,null=True)
     #Organisationsp_no=models.CharField(max_length=25)
     which_user=models.OneToOneField(User,on_delete=models.CASCADE,blank=True,null=True,related_name='Organisations_user',)
     #Organisations_Created_at=models.DateTimeField(auto_now_add=True,blank=True,null=True)
     is_active = models.BooleanField(default=False,blank=True,null=True)
+    is_email_verify=models.BooleanField(default=False,blank=True,null=True)
     is_mobile_verify=models.BooleanField(default=False,blank=True,null=True)
     is_subscribe=models.BooleanField(default=False,blank=True,null=True)
-   # createdBy = models.ForeignKey(User,on_delete=models.CASCADE,null=True,blank=True)
+    otp=models.CharField(max_length=15,blank=True,null=True)
     createdAt = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updatedAt = models.DateTimeField(auto_now=True, blank=True, null=True)
     otp_forgot_password=models.CharField(max_length=25,blank=True,null=True)
@@ -147,7 +152,7 @@ Task_Statu = (
     ("In Progress", "In Progress"),
     ("Complete", "Complete"),
     ("Cancel", "Cancel"),
-    ("InvoicePaid", "InvoicePaid"))
+    ("Invoice Paid", "Invoice Paid"))
 class Task(models.Model):
     Task_Title=models.CharField(max_length=50)
     Task_Category_name=models.ForeignKey('Category',on_delete=models.CASCADE)
@@ -162,6 +167,9 @@ class Task(models.Model):
     Task_Comment=models.TextField(blank=True,null=True)
     Task_attchments=models.ManyToManyField(attachments,blank=True)
     createdBy = models.ForeignKey(User,on_delete=models.CASCADE,null=True,blank=True)
+    which_manager=models.ForeignKey(User,on_delete=models.CASCADE,null=True,blank=True,related_name='manager')
+    which_organisation=models.ForeignKey(Organisations,on_delete=models.CASCADE,null=True,blank=True)
+
     Due_date=models.DateField(blank=True,null=True)
 
 

@@ -33,6 +33,11 @@ urlpatterns = [
     path('app/', include('prodemoapp.urls')),
     path('admin/', admin.site.urls),
     path('userauth', CustomAuthToken.as_view()),
+
+
+
+
+
     #path(r'setpassword_forgot_org', setpassword_forgotviewset_for_org),
     path('xyz',views.xyz),
 
